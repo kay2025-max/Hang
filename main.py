@@ -95,9 +95,11 @@ class TicketView(discord.ui.View):
         self.add_item(TicketSelect())
 
 # Thêm hàm này trong Bot
-@bot.event
 async def setup_hook():
-    bot.add_view(TicketView())  # đăng ký lại View khi bot restart
+    bot.add_view(TicketView())
+
+bot.setup_hook = setup_hook
+
 
 
 @bot.command()
