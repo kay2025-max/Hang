@@ -29,6 +29,22 @@ questions = {
     }
 }
 
+# --- Button đóng ticket ---
+class CloseTicketButton(discord.ui.Button):
+    def __init__(self):
+        super().__init__(label="🔒 Đóng Ticket", style=discord.ButtonStyle.danger)
+
+    async def callback(self, interaction: discord.Interaction):
+        # chỉ admin mới được đóng
+        if interaction.user.id != ADMIN_ID:
+            await interaction.response.send_message("❌ Bạn không có quyền đóng ticket này.", ephemeral=True)
+            return
+
+        await interaction.response.send_message("Ticket sẽ đóng sau 5 giây...", ephemeral=True)
+        await interaction.channel.send("🔒 Ticket này sẽ bị đóng...")
+        await interaction.channel.edit(archived=True) if isinstance(interaction.channel, discord.Thread) else await interaction.channel.delete()
+
+
 # --- UI Dropdown ---
 class TicketSelect(discord.ui.Select):
     def __init__(self):
@@ -63,7 +79,13 @@ class TicketSelect(discord.ui.Select):
             category=category,
             overwrites=overwrites
         )
-        await channel.send(f"Xin chào {user.mention}, cảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\nAdmin sẽ sớm phản hồi bạn.")
+        view = discord.ui.View()
+        view.add_item(CloseTicketButton())
+
+        await channel.send(
+            f"Xin chào {user.mention}, cảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\nAdmin sẽ sớm phản hồi bạn.",
+            view=view
+        )
         await interaction.response.send_message(f"Ticket của bạn đã được tạo: {channel.mention}", ephemeral=True)
 
 
