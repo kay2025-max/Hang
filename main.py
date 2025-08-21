@@ -1,3 +1,4 @@
+import os
 import discord
 from discord.ext import commands
 
@@ -35,20 +36,27 @@ class CloseTicketButton(discord.ui.Button):
         super().__init__(
             label="🔒 Đóng Ticket",
             style=discord.ButtonStyle.danger,
-            custom_id="close_ticket"   # BẮT BUỘC: custom_id cố định
+            custom_id="close_ticket"
         )
 
     async def callback(self, interaction: discord.Interaction):
-        if interaction.user.id != ADMIN_ID:
-            await interaction.response.send_message(
-                "❌ Bạn không có quyền đóng ticket này.", ephemeral=True
-            )
-            return
+        try:
+            if interaction.user.id != ADMIN_ID:
+                await interaction.response.send_message(
+                    "❌ Bạn không có quyền đóng ticket này.", ephemeral=True
+                )
+                return
 
-        await interaction.response.send_message("Ticket sẽ đóng sau 5 giây...", ephemeral=True)
-        await interaction.channel.send("🔒 Ticket này sẽ bị đóng...")
-        await interaction.channel.delete()
+            await interaction.response.send_message("Ticket sẽ đóng sau 5 giây...", ephemeral=True)
+            await interaction.channel.send("🔒 Ticket này sẽ bị đóng...")
+            await interaction.channel.delete()
 
+        except Exception as e:
+            print(f"[ERROR] CloseTicketButton: {e}")
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "❌ Có lỗi khi đóng ticket.", ephemeral=True
+                )
 
 # --- UI Dropdown ---
 class TicketSelect(discord.ui.Select):
@@ -65,57 +73,58 @@ class TicketSelect(discord.ui.Select):
         super().__init__(
             placeholder="Chọn loại ticket...",
             options=options,
-            custom_id="ticket_select"  # BẮT BUỘC: custom_id cố định
+            custom_id="ticket_select"
         )
 
     async def callback(self, interaction: discord.Interaction):
-        qid = self.values[0]
-        user = interaction.user
-        guild = interaction.guild
-        category = discord.utils.get(guild.categories, id=CATEGORY_ID)
+        try:
+            qid = self.values[0]
+            user = interaction.user
+            guild = interaction.guild
+            category = discord.utils.get(guild.categories, id=CATEGORY_ID)
 
-        overwrites = {
-            guild.default_role: discord.PermissionOverwrite(view_channel=False),
-            user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
-            guild.get_member(ADMIN_ID): discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
-        }
+            overwrites = {
+                guild.default_role: discord.PermissionOverwrite(view_channel=False),
+                user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
+                guild.get_member(ADMIN_ID): discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
+            }
 
-        # tạo kênh ticket
-        channel = await guild.create_text_channel(
-            name=f"ticket-{user.name}-{questions[qid]['suffix']}",
-            category=category,
-            overwrites=overwrites
-        )
-        view = discord.ui.View(timeout=None)   # view persistent
-        view.add_item(CloseTicketButton())
+            # tạo kênh ticket
+            channel = await guild.create_text_channel(
+                name=f"ticket-{user.name}-{questions[qid]['suffix']}",
+                category=category,
+                overwrites=overwrites
+            )
+            view = discord.ui.View(timeout=None)
+            view.add_item(CloseTicketButton())
 
-        await channel.send(
-            f"Xin chào {user.mention}, cảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\nAdmin sẽ sớm phản hồi bạn.",
-            view=view
-        )
-        await interaction.response.send_message(
-            f"✅ Ticket của bạn đã được tạo: {channel.mention}", ephemeral=True
-        )
+            await channel.send(
+                f"Xin chào {user.mention}, cảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\nAdmin sẽ sớm phản hồi bạn.",
+                view=view
+            )
+            await interaction.response.send_message(
+                f"✅ Ticket của bạn đã được tạo: {channel.mention}", ephemeral=True
+            )
 
+        except Exception as e:
+            print(f"[ERROR] TicketSelect: {e}")
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "❌ Có lỗi khi tạo ticket.", ephemeral=True
+                )
 
 # --- Ticket Panel View ---
 class TicketView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None)  # persistent
+        super().__init__(timeout=None)
         self.add_item(TicketSelect())
 
-
-# Thêm hàm này trong Bot
+# --- setup_hook để giữ view persistent ---
 @bot.event
 async def setup_hook():
-    # Đăng ký lại view khi bot restart
-    bot.add_view(TicketView())  
+    bot.add_view(TicketView())  # đăng ký view để không mất khi restart
 
-
-bot.setup_hook = setup_hook
-
-
-
+# --- Command gửi panel ---
 @bot.command()
 async def sendpanel(ctx):
     embed = discord.Embed(
@@ -128,9 +137,5 @@ async def sendpanel(ctx):
     await channel.send(embed=embed, view=view)
     await ctx.send("✅ Panel ticket đã được gửi.", delete_after=5)
 
-
-import os
-
+# --- Run bot ---
 bot.run(os.getenv("BOT_TOKEN"))
-
-
