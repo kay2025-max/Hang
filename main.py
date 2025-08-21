@@ -12,7 +12,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # --- CONFIG ---
 CHANNEL_ID = 1407910664621789234   # kênh gửi panel
 CATEGORY_ID = 1407910925922467941  # danh mục chứa ticket
-ADMIN_ID = 1407879481217253416     # admin luôn có quyền xem
+ADMIN_IDS = [1407879481217253416, 1407431393817919630]    # danh sách admin có quyền đóng ticket
 
 # --- Questions ---
 questions = {
@@ -41,7 +41,7 @@ class CloseTicketButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         try:
-            if interaction.user.id != ADMIN_ID:
+            if interaction.user.id not in ADMIN_IDS:
                 await interaction.response.send_message(
                     "❌ Bạn không có quyền đóng ticket này.", ephemeral=True
                 )
@@ -86,13 +86,18 @@ class TicketSelect(discord.ui.Select):
             print(f"[DEBUG] User chọn: {qid}")
             print(f"[DEBUG] Guild: {guild} (ID: {guild.id})")
             print(f"[DEBUG] Category: {category}")
-            print(f"[DEBUG] Admin member: {guild.get_member(ADMIN_ID)}")
 
             overwrites = {
                 guild.default_role: discord.PermissionOverwrite(view_channel=False),
-                user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
-                guild.get_member(ADMIN_ID): discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
+                user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
             }
+            
+            # Thêm quyền cho tất cả admin
+            for admin_id in ADMIN_IDS:
+                admin_member = guild.get_member(admin_id)
+                if admin_member:
+                    overwrites[admin_member] = discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
+                    print(f"[DEBUG] Added admin: {admin_member.name}")
 
             # tạo kênh ticket
             channel = await guild.create_text_channel(
@@ -118,59 +123,7 @@ class TicketSelect(discord.ui.Select):
             traceback.print_exc()
             if not interaction.response.is_done():
                 await interaction.response.send_message(
-                    "❌ Có lỗi khi tạo ticket liên hệ admin.", ephemeral=True
-                )
-
-
-            # tạo kênh ticket
-            channel = await guild.create_text_channel(
-                name=f"ticket-{user.name}-{questions[qid]['suffix']}",
-                category=category,
-                overwrites=overwrites
-            )
-
-            view = discord.ui.View(timeout=None)
-            view.add_item(CloseTicketButton())
-
-            await channel.send(
-                f"Xin chào {user.mention}, cảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\nAdmin sẽ sớm phản hồi bạn.",
-                view=view
-            )
-            await interaction.response.send_message(
-                f"✅ Ticket của bạn đã được tạo: {channel.mention}", ephemeral=True
-            )
-
-        except Exception as e:
-            import traceback
-            print("[ERROR] TicketSelect:", e)
-            traceback.print_exc()
-            if not interaction.response.is_done():
-                await interaction.response.send_message(
-                    "❌ Có lỗi khi tạo ticket.", ephemeral=True
-                )
-
-            # tạo kênh ticket
-            channel = await guild.create_text_channel(
-                name=f"ticket-{user.name}-{questions[qid]['suffix']}",
-                category=category,
-                overwrites=overwrites
-            )
-            view = discord.ui.View(timeout=None)
-            view.add_item(CloseTicketButton())
-
-            await channel.send(
-                f"Xin chào {user.mention}, cảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\nAdmin sẽ sớm phản hồi bạn.",
-                view=view
-            )
-            await interaction.response.send_message(
-                f"✅ Ticket của bạn đã được tạo: {channel.mention}", ephemeral=True
-            )
-
-        except Exception as e:
-            print(f"[ERROR] TicketSelect: {e}")
-            if not interaction.response.is_done():
-                await interaction.response.send_message(
-                    "❌ Có lỗi khi tạo ticket.", ephemeral=True
+                    "❌ Có lỗi khi tạo ticket. Vui lòng liên hệ admin.", ephemeral=True
                 )
 
 # --- Ticket Panel View ---
