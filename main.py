@@ -30,18 +30,19 @@ questions = {
 }
 
 # --- Button đóng ticket ---
-# --- Button đóng ticket ---
 class CloseTicketButton(discord.ui.Button):
     def __init__(self):
         super().__init__(
             label="🔒 Đóng Ticket",
             style=discord.ButtonStyle.danger,
-            custom_id="close_ticket"   # thêm custom_id cố định
+            custom_id="close_ticket"   # BẮT BUỘC: custom_id cố định
         )
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id != ADMIN_ID:
-            await interaction.response.send_message("❌ Bạn không có quyền đóng ticket này.", ephemeral=True)
+            await interaction.response.send_message(
+                "❌ Bạn không có quyền đóng ticket này.", ephemeral=True
+            )
             return
 
         await interaction.response.send_message("Ticket sẽ đóng sau 5 giây...", ephemeral=True)
@@ -64,29 +65,13 @@ class TicketSelect(discord.ui.Select):
         super().__init__(
             placeholder="Chọn loại ticket...",
             options=options,
-            custom_id="ticket_select"   # thêm custom_id cố định
+            custom_id="ticket_select"  # BẮT BUỘC: custom_id cố định
         )
-
-# --- UI Dropdown ---
-class TicketSelect(discord.ui.Select):
-    def __init__(self):
-        options = [
-            discord.SelectOption(
-                label=questions[qid]["label"],
-                emoji=questions[qid]["emoji"],
-                value=qid,
-                description=questions[qid]["placeholder"]
-            )
-            for qid in questions
-        ]
-        super().__init__(placeholder="Chọn loại ticket...", options=options)
 
     async def callback(self, interaction: discord.Interaction):
         qid = self.values[0]
         user = interaction.user
         guild = interaction.guild
-
-        # lấy category
         category = discord.utils.get(guild.categories, id=CATEGORY_ID)
 
         overwrites = {
@@ -101,16 +86,19 @@ class TicketSelect(discord.ui.Select):
             category=category,
             overwrites=overwrites
         )
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=None)   # view persistent
         view.add_item(CloseTicketButton())
 
         await channel.send(
             f"Xin chào {user.mention}, cảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\nAdmin sẽ sớm phản hồi bạn.",
             view=view
         )
-        await interaction.response.send_message(f"Ticket của bạn đã được tạo: {channel.mention}", ephemeral=True)
+        await interaction.response.send_message(
+            f"✅ Ticket của bạn đã được tạo: {channel.mention}", ephemeral=True
+        )
 
 
+# --- Ticket Panel View ---
 class TicketView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)  # persistent
