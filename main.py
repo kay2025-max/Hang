@@ -76,18 +76,50 @@ class TicketSelect(discord.ui.Select):
             custom_id="ticket_select"
         )
 
-    async def callback(self, interaction: discord.Interaction):
+        async def callback(self, interaction: discord.Interaction):
         try:
             qid = self.values[0]
             user = interaction.user
             guild = interaction.guild
             category = discord.utils.get(guild.categories, id=CATEGORY_ID)
 
+            print(f"[DEBUG] User chọn: {qid}")
+            print(f"[DEBUG] Guild: {guild} (ID: {guild.id})")
+            print(f"[DEBUG] Category: {category}")
+            print(f"[DEBUG] Admin member: {guild.get_member(ADMIN_ID)}")
+
             overwrites = {
                 guild.default_role: discord.PermissionOverwrite(view_channel=False),
                 user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
                 guild.get_member(ADMIN_ID): discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
             }
+
+            # tạo kênh ticket
+            channel = await guild.create_text_channel(
+                name=f"ticket-{user.name}-{questions[qid]['suffix']}",
+                category=category,
+                overwrites=overwrites
+            )
+
+            view = discord.ui.View(timeout=None)
+            view.add_item(CloseTicketButton())
+
+            await channel.send(
+                f"Xin chào {user.mention}, cảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\nAdmin sẽ sớm phản hồi bạn.",
+                view=view
+            )
+            await interaction.response.send_message(
+                f"✅ Ticket của bạn đã được tạo: {channel.mention}", ephemeral=True
+            )
+
+        except Exception as e:
+            import traceback
+            print("[ERROR] TicketSelect:", e)
+            traceback.print_exc()
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "❌ Có lỗi khi tạo ticket.", ephemeral=True
+                )
 
             # tạo kênh ticket
             channel = await guild.create_text_channel(
