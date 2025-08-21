@@ -108,5 +108,8 @@ async def sendpanel(ctx):
     await ctx.send("✅ Panel ticket đã được gửi.", delete_after=5)
 
 
-bot.run("YOUR_BOT_TOKEN")
+import os
+
+bot.run(os.getenv("BOT_TOKEN"))
+
 
