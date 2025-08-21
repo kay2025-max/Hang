@@ -30,20 +30,42 @@ questions = {
 }
 
 # --- Button đóng ticket ---
+# --- Button đóng ticket ---
 class CloseTicketButton(discord.ui.Button):
     def __init__(self):
-        super().__init__(label="🔒 Đóng Ticket", style=discord.ButtonStyle.danger)
+        super().__init__(
+            label="🔒 Đóng Ticket",
+            style=discord.ButtonStyle.danger,
+            custom_id="close_ticket"   # thêm custom_id cố định
+        )
 
     async def callback(self, interaction: discord.Interaction):
-        # chỉ admin mới được đóng
         if interaction.user.id != ADMIN_ID:
             await interaction.response.send_message("❌ Bạn không có quyền đóng ticket này.", ephemeral=True)
             return
 
         await interaction.response.send_message("Ticket sẽ đóng sau 5 giây...", ephemeral=True)
         await interaction.channel.send("🔒 Ticket này sẽ bị đóng...")
-        await interaction.channel.edit(archived=True) if isinstance(interaction.channel, discord.Thread) else await interaction.channel.delete()
+        await interaction.channel.delete()
 
+
+# --- UI Dropdown ---
+class TicketSelect(discord.ui.Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(
+                label=questions[qid]["label"],
+                emoji=questions[qid]["emoji"],
+                value=qid,
+                description=questions[qid]["placeholder"]
+            )
+            for qid in questions
+        ]
+        super().__init__(
+            placeholder="Chọn loại ticket...",
+            options=options,
+            custom_id="ticket_select"   # thêm custom_id cố định
+        )
 
 # --- UI Dropdown ---
 class TicketSelect(discord.ui.Select):
@@ -91,8 +113,9 @@ class TicketSelect(discord.ui.Select):
 
 class TicketView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None)  # timeout=None => persistent view
+        super().__init__(timeout=None)  # persistent
         self.add_item(TicketSelect())
+
 
 # Thêm hàm này trong Bot
 async def setup_hook():
