@@ -12,7 +12,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # --- CONFIG ---
 CHANNEL_ID = 1407910664621789234   # kênh gửi panel
 CATEGORY_ID = 1407910925922467941  # danh mục chứa ticket
-ADMIN_IDS = [1407879481217253416, 1407431393817919630]    # danh sách admin có quyền đóng ticket
+ADMIN_IDS = [1407879481217253416, 1407431393817919630, 1406537391577104423]    # danh sách admin có quyền đóng ticket
+ADMIN_ROLES = [1407879480558616627]    # danh sách role có quyền đóng ticket
 
 # --- Questions ---
 questions = {
@@ -41,7 +42,13 @@ class CloseTicketButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         try:
-            if interaction.user.id not in ADMIN_IDS:
+            # Kiểm tra quyền admin (user ID hoặc role)
+            has_admin_permission = (
+                interaction.user.id in ADMIN_IDS or 
+                any(role.id in ADMIN_ROLES for role in interaction.user.roles)
+            )
+            
+            if not has_admin_permission:
                 await interaction.response.send_message(
                     "❌ Bạn không có quyền đóng ticket này.", ephemeral=True
                 )
@@ -91,13 +98,20 @@ class TicketSelect(discord.ui.Select):
                 guild.default_role: discord.PermissionOverwrite(view_channel=False),
                 user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
             }
-            
-            # Thêm quyền cho tất cả admin
+
+            # Thêm quyền cho tất cả admin users
             for admin_id in ADMIN_IDS:
                 admin_member = guild.get_member(admin_id)
                 if admin_member:
                     overwrites[admin_member] = discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
                     print(f"[DEBUG] Added admin: {admin_member.name}")
+            
+            # Thêm quyền cho tất cả admin roles
+            for role_id in ADMIN_ROLES:
+                admin_role = guild.get_role(role_id)
+                if admin_role:
+                    overwrites[admin_role] = discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
+                    print(f"[DEBUG] Added admin role: {admin_role.name}")
 
             # tạo kênh ticket
             channel = await guild.create_text_channel(
