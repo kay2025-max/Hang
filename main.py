@@ -311,7 +311,7 @@ class TicketSelect(discord.ui.Select):
             # Embed chào mừng
             welcome_embed = discord.Embed(
                 title=f"🎫 {questions[qid]['label']}",
-                description=f"Xin chào {user.mention}!\n\nCảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\n\n📋 **Hướng dẫn:**\n• Mô tả chi tiết vấn đề của bạn\n• Admin sẽ phản hồi trong thời gian sớm nhất\n• Sử dụng các nút bên dưới để quản lý ticket"<@&1407879486321590343>,
+                description=f"Xin chào {user.mention}!\n\nCảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\n\n📋 **Hướng dẫn:**\n• Mô tả chi tiết vấn đề của bạn\n• Admin sẽ phản hồi trong thời gian sớm nhất\n• Sử dụng các nút bên dưới để quản lý ticket",
                 color=discord.Color.blue(),
                 timestamp=discord.utils.utcnow()
             )
@@ -363,24 +363,132 @@ async def on_ready():
 @commands.has_permissions(administrator=True)
 async def sendpanel(ctx):
     """Gửi panel ticket với giao diện đẹp"""
-    embed = discord.Embed(
-        title="🎫 Hệ thống hỗ trợ",
-        description="**Chào mừng đến với hệ thống hỗ trợ!**\n\n📋 **Hướng dẫn sử dụng:**\n• Chọn loại hỗ trợ phù hợp từ menu bên dưới\n• Một kênh riêng sẽ được tạo để bạn trao đổi với admin\n• Mô tả chi tiết vấn đề để được hỗ trợ nhanh nhất\n\n⚡ **Thời gian phản hồi:** Dưới 24 giờ\n🔒 **Bảo mật:** Chỉ bạn và admin có thể xem nội dung",
+    # Main embed với gradient effect
+    main_embed = discord.Embed(
+        title="",
+        description="",
+        color=0x7289da
+    )
+    
+    # Header với ASCII art
+    header_text = """
+```
+╔══════════════════════════════════════╗
+║          🎫 HỆ THỐNG HỖ TRỢ           ║
+║        CHUYÊN NGHIỆP & NHANH CHÓNG    ║
+╚══════════════════════════════════════╝
+```
+"""
+    
+    # Main content với styling đẹp
+    main_content = """
+**🌟 CHÀO MỪNG ĐẾN VỚI HỆ THỐNG HỖ TRỢ CHUYÊN NGHIỆP!**
+
+┌─────────────────────────────────────┐
+│ 📋 **HƯỚNG DẪN SỬ DỤNG**            │
+├─────────────────────────────────────┤
+│ ▸ Chọn loại hỗ trợ từ menu bên dưới  │
+│ ▸ Kênh riêng sẽ được tạo tự động     │
+│ ▸ Mô tả chi tiết để được hỗ trợ tốt  │
+│ ▸ Admin sẽ phản hồi trong 24h        │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ 🎯 **CÁC LOẠI HỖ TRỢ**              │
+├─────────────────────────────────────┤
+│ 🆘 **Hỗ trợ kỹ thuật** - Giải đáp    │
+│ 🤝 **Hợp tác kinh doanh** - Đối tác  │
+│ ⚠️ **Báo cáo vi phạm** - An toàn     │
+│ 💡 **Góp ý cải thiện** - Phát triển  │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│ ⚡ **THÔNG TIN QUAN TRỌNG**          │
+├─────────────────────────────────────┤
+│ 🕐 Thời gian phản hồi: < 24 giờ     │
+│ 🔒 Bảo mật: Chỉ bạn và admin xem    │
+│ 📊 Hệ thống: 24/7 hoạt động         │
+│ 🎫 Giới hạn: 3 ticket/người dùng    │
+└─────────────────────────────────────┘
+"""
+    
+    main_embed.description = header_text + main_content
+    
+    # Thêm fields đẹp
+    main_embed.add_field(
+        name="🏆 Chất lượng dịch vụ",
+        value="```fix\n✓ Hỗ trợ chuyên nghiệp\n✓ Phản hồi nhanh chóng\n✓ Giải pháp hiệu quả```",
+        inline=True
+    )
+    
+    main_embed.add_field(
+        name="📞 Liên hệ khẩn cấp",
+        value="```css\nDM trực tiếp Admin\nnếu có vấn đề khẩn cấp```",
+        inline=True
+    )
+    
+    main_embed.add_field(
+        name="🎉 Cam kết",
+        value="```yaml\n- Hỗ trợ tận tâm\n- Giải quyết triệt để\n- Bảo mật thông tin```",
+        inline=True
+    )
+    
+    # Set thumbnail và footer
+    if ctx.guild.icon:
+        main_embed.set_thumbnail(url=ctx.guild.icon.url)
+    
+    main_embed.set_image(url="https://via.placeholder.com/800x200/7289da/ffffff?text=TICKET+SUPPORT+SYSTEM")
+    
+    main_embed.set_footer(
+        text="💎 Chọn loại hỗ trợ từ menu bên dưới để bắt đầu • Powered by Discord Bot",
+        icon_url=bot.user.display_avatar.url
+    )
+    
+    main_embed.timestamp = discord.utils.utcnow()
+    
+    # Tạo embed thống kê
+    category = discord.utils.get(ctx.guild.categories, id=CATEGORY_ID)
+    total_tickets = len([ch for ch in category.channels if ch.name.startswith("ticket-")]) if category else 0
+    
+    stats_embed = discord.Embed(
+        title="📊 THỐNG KÊ HỆ THỐNG",
         color=0x00ff9f
     )
-    embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else None)
-    embed.set_footer(text="💡 Chọn loại hỗ trợ bên dưới để bắt đầu", icon_url=bot.user.display_avatar.url)
     
+    stats_embed.add_field(
+        name="🎫 Ticket đang mở",
+        value=f"```fix\n{total_tickets} tickets```",
+        inline=True
+    )
+    
+    stats_embed.add_field(
+        name="👥 Admin trực tuyến",
+        value=f"```css\n{len(ADMIN_IDS)} admins```",
+        inline=True
+    )
+    
+    stats_embed.add_field(
+        name="⚡ Trạng thái",
+        value="```diff\n+ HOẠT ĐỘNG```",
+        inline=True
+    )
+    
+    # Gửi panel
     view = TicketView()
     channel = ctx.guild.get_channel(CHANNEL_ID) or ctx.channel
-    await channel.send(embed=embed, view=view)
     
+    await channel.send(embeds=[main_embed, stats_embed], view=view)
+    
+    # Success message với animation
     success_embed = discord.Embed(
-        title="✅ Thành công",
-        description="Panel ticket đã được gửi thành công!",
-        color=discord.Color.green()
+        title="✅ PANEL ĐÃ ĐƯỢC GỬI THÀNH CÔNG!",
+        description="```css\n🎉 Hệ thống ticket đã sẵn sàng hoạt động!\n📍 Vị trí: " + channel.mention + "\n⏰ Thời gian: " + discord.utils.format_dt(discord.utils.utcnow(), 'F') + "```",
+        color=0x00ff00,
+        timestamp=discord.utils.utcnow()
     )
-    await ctx.send(embed=success_embed, delete_after=5)
+    success_embed.set_footer(text="Bot by Admin • Ticket System v2.0")
+    
+    await ctx.send(embed=success_embed, delete_after=10)
 
 @bot.command(name="closeticket", aliases=["close"])
 async def close_ticket_command(ctx):
