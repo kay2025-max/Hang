@@ -9,7 +9,7 @@ intents.message_content = True
 intents.guilds = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
 # --- CONFIG ---
 CHANNEL_ID = 1407910664621789234   # kênh gửi panel
