@@ -311,7 +311,7 @@ class TicketSelect(discord.ui.Select):
             # Embed chào mừng
             welcome_embed = discord.Embed(
                 title=f"🎫 {questions[qid]['label']}",
-                description=f"Xin chào {user.mention}!\n\nCảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\n\n📋 **Hướng dẫn:**\n• Mô tả chi tiết vấn đề của bạn\n• Admin sẽ phản hồi trong thời gian sớm nhất\n• Sử dụng các nút bên dưới để quản lý ticket",
+                description=f"Xin chào {user.mention}!\n\nCảm ơn bạn đã mở ticket **{questions[qid]['label']}**.\n\n📋 **Hướng dẫn:**\n• Mô tả chi tiết vấn đề của bạn\n• Admin sẽ phản hồi trong thời gian sớm nhất\n• Sử dụng các nút bên dưới để quản lý ticket"<@&1407879486321590343>,
                 color=discord.Color.blue(),
                 timestamp=discord.utils.utcnow()
             )
