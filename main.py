@@ -578,6 +578,250 @@ async def add_user_command(ctx, user: discord.Member = None):
     
     await ctx.send(embed=embed)
 
+@bot.command(name="help", aliases=["h", "giupdo", "trogiup"])
+async def help_command(ctx, category: str = None):
+    """Lệnh help chất lượng với giao diện đẹp"""
+    
+    if category is None:
+        # Main help embed
+        main_embed = discord.Embed(
+            title="",
+            description="",
+            color=0x5865f2
+        )
+        
+        # Header đẹp
+        header_text = """
+```ansi
+[2;32m╔══════════════════════════════════════════╗[0m
+[2;32m║[0m[2;36m            🤖 HƯỚNG DẪN SỬ DỤNG BOT          [0m[2;32m║[0m
+[2;32m║[0m[2;35m           TICKET SYSTEM V2.0             [0m[2;32m║[0m
+[2;32m╚══════════════════════════════════════════╝[0m
+```
+"""
+        
+        main_content = """
+**🎯 DANH SÁCH LỆNH CƠ BẢN**
+
+┌────────────────────────────────────────┐
+│ **📋 LỆNH CHO NGƯỜI DÙNG**             │
+├────────────────────────────────────────┤
+│ `!help [category]` - Xem hướng dẫn     │
+│ `!help user` - Lệnh người dùng         │
+│ `!help admin` - Lệnh admin             │
+└────────────────────────────────────────┘
+
+┌────────────────────────────────────────┐
+│ **🎫 HỆ THỐNG TICKET**                 │
+├────────────────────────────────────────┤
+│ • Sử dụng panel để tạo ticket          │
+│ • Chọn loại hỗ trợ phù hợp             │
+│ • Mô tả chi tiết vấn đề                │
+│ • Chờ admin phản hồi                   │
+└────────────────────────────────────────┘
+
+┌────────────────────────────────────────┐
+│ **⚡ TÍNH NĂNG NỔI BẬT**               │
+├────────────────────────────────────────┤
+│ 🔒 Bảo mật cao - Chỉ admin và bạn xem  │
+│ 🚀 Tạo ticket tự động trong 2 giây     │
+│ 📊 Thống kê chi tiết                   │
+│ 🎨 Giao diện đẹp, dễ sử dụng           │
+└────────────────────────────────────────┘
+"""
+        
+        main_embed.description = header_text + main_content
+        
+        # Thêm các field hướng dẫn
+        main_embed.add_field(
+            name="📚 Các loại help",
+            value="```css\n!help user   - Lệnh người dùng\n!help admin  - Lệnh quản trị\n!help ticket - Về hệ thống ticket```",
+            inline=True
+        )
+        
+        main_embed.add_field(
+            name="🆘 Hỗ trợ khẩn cấp",
+            value="```fix\nDM trực tiếp Admin\nhoặc tạo ticket báo cáo```",
+            inline=True
+        )
+        
+        main_embed.add_field(
+            name="🔗 Links hữu ích",
+            value="```yaml\nServer: discord.gg/yourserver\nGithub: github.com/yourbot\nWebsite: yoursite.com```",
+            inline=True
+        )
+        
+        main_embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else bot.user.display_avatar.url)
+        main_embed.set_footer(
+            text="💡 Sử dụng !help [category] để xem chi tiết • Bot by Admin",
+            icon_url=bot.user.display_avatar.url
+        )
+        main_embed.timestamp = discord.utils.utcnow()
+        
+        await ctx.send(embed=main_embed)
+    
+    elif category.lower() in ["user", "nguoidung", "u"]:
+        # User commands help
+        user_embed = discord.Embed(
+            title="👤 LỆNH CHO NGƯỜI DÙNG",
+            color=0x00ff9f,
+            timestamp=discord.utils.utcnow()
+        )
+        
+        user_embed.description = """
+```ansi
+[2;34m╭─────────────────────────────────────────╮[0m
+[2;34m│[0m[2;33m          🎫 HỆ THỐNG TICKET             [0m[2;34m│[0m
+[2;34m╰─────────────────────────────────────────╯[0m
+```
+
+**📋 CÁCH TẠO TICKET:**
+• Tìm kênh có panel ticket
+• Chọn loại hỗ trợ từ dropdown menu
+• Kênh riêng sẽ được tạo tự động
+• Mô tả vấn đề chi tiết để được hỗ trợ tốt nhất
+
+**🎯 CÁC LOẠI HỖ TRỢ:**
+🆘 **Hỗ trợ kỹ thuật** - Giải đáp thắc mắc
+🤝 **Hợp tác kinh doanh** - Đề xuất đối tác  
+⚠️ **Báo cáo vi phạm** - Báo cáo vi phạm
+💡 **Góp ý cải thiện** - Ý kiến phát triển
+"""
+        
+        user_embed.add_field(
+            name="⏰ Thời gian phản hồi",
+            value="```fix\n< 24 giờ```",
+            inline=True
+        )
+        
+        user_embed.add_field(
+            name="🎫 Giới hạn ticket",
+            value="```yaml\n3 tickets/người```",
+            inline=True
+        )
+        
+        user_embed.add_field(
+            name="🔒 Bảo mật",
+            value="```css\nChỉ bạn & admin xem```",
+            inline=True
+        )
+        
+        user_embed.set_footer(text="💡 Tip: Mô tả chi tiết giúp admin hỗ trợ nhanh hơn")
+        
+        await ctx.send(embed=user_embed)
+    
+    elif category.lower() in ["admin", "a", "quanly"]:
+        # Admin commands help
+        if not (ctx.author.id in ADMIN_IDS or any(role.id in ADMIN_ROLES for role in ctx.author.roles)):
+            error_embed = discord.Embed(
+                title="❌ Không có quyền",
+                description="Bạn không có quyền xem lệnh admin.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=error_embed)
+            return
+            
+        admin_embed = discord.Embed(
+            title="👑 LỆNH DÀNH CHO ADMIN",
+            color=0xff6b6b,
+            timestamp=discord.utils.utcnow()
+        )
+        
+        admin_embed.description = """
+```ansi
+[2;31m╭─────────────────────────────────────────╮[0m
+[2;31m│[0m[2;33m         🛠️ CÔNG CỤ QUẢN TRỊ             [0m[2;31m│[0m
+[2;31m╰─────────────────────────────────────────╯[0m
+```
+
+**🎛️ LỆNH CHÍNH:**
+"""
+        
+        commands_list = [
+            ("📤 `!sendpanel`", "Gửi panel ticket mới"),
+            ("🔒 `!closeticket`", "Đóng ticket hiện tại"),  
+            ("➕ `!adduser @user`", "Thêm người vào ticket"),
+            ("📊 `!stats`", "Xem thống kê hệ thống"),
+            ("❓ `!help admin`", "Xem lệnh admin")
+        ]
+        
+        for i, (cmd, desc) in enumerate(commands_list):
+            admin_embed.add_field(
+                name=cmd,
+                value=f"```{desc}```",
+                inline=False
+            )
+        
+        admin_embed.add_field(
+            name="🎫 Quản lý ticket trong kênh",
+            value="```yaml\n- Nút 🔒 Đóng Ticket\n- Nút ✏️ Đổi tên\n- Nút ➕ Thêm người```",
+            inline=False
+        )
+        
+        admin_embed.set_footer(text="⚠️ Chỉ admin có quyền sử dụng các lệnh này")
+        
+        await ctx.send(embed=admin_embed)
+    
+    elif category.lower() in ["ticket", "t"]:
+        # Ticket system detailed help
+        ticket_embed = discord.Embed(
+            title="🎫 HỆ THỐNG TICKET CHI TIẾT",
+            color=0x9b59b6,
+            timestamp=discord.utils.utcnow()
+        )
+        
+        ticket_embed.description = """
+```ansi
+[2;35m╭─────────────────────────────────────────╮[0m
+[2;35m│[0m[2;36m        📋 HƯỚNG DẪN CHI TIẾT            [0m[2;35m│[0m
+[2;35m╰─────────────────────────────────────────╯[0m
+```
+
+**🚀 QUY TRÌNH TẠO TICKET:**
+
+**Bước 1:** Tìm panel ticket trong server
+**Bước 2:** Click vào dropdown menu bên dưới  
+**Bước 3:** Chọn loại hỗ trợ phù hợp
+**Bước 4:** Kênh riêng được tạo tự động
+**Bước 5:** Mô tả chi tiết vấn đề của bạn
+**Bước 6:** Chờ admin phản hồi (< 24h)
+
+**🎯 MẸO VIẾT TICKET TỐT:**
+• Tiêu đề ngắn gọn, rõ ràng
+• Mô tả chi tiết từng bước
+• Đính kèm ảnh/video nếu cần
+• Ghi rõ thời gian xảy ra sự cố
+"""
+        
+        ticket_embed.add_field(
+            name="✅ Ticket tốt",
+            value="```fix\n+ Mô tả chi tiết\n+ Có ảnh minh họa\n+ Thời gian cụ thể\n+ Các bước đã thử```",
+            inline=True
+        )
+        
+        ticket_embed.add_field(
+            name="❌ Ticket kém",
+            value="```diff\n- Chỉ viết 'help'\n- Không rõ ràng\n- Thiếu thông tin\n- Không lịch sự```",
+            inline=True
+        )
+        
+        ticket_embed.add_field(
+            name="📏 Quy tắc",
+            value="```yaml\n- Tối đa 3 ticket/người\n- Không spam\n- Lịch sự với admin\n- Đóng ticket khi xong```",
+            inline=False
+        )
+        
+        await ctx.send(embed=ticket_embed)
+    
+    else:
+        # Invalid category
+        error_embed = discord.Embed(
+            title="❌ Danh mục không hợp lệ",
+            description="**Các danh mục có sẵn:**\n• `user` - Lệnh người dùng\n• `admin` - Lệnh quản trị\n• `ticket` - Hệ thống ticket\n\n**Cách dùng:** `!help [category]`",
+            color=discord.Color.orange()
+        )
+        await ctx.send(embed=error_embed)
+
 @bot.command(name="stats")
 @commands.has_permissions(administrator=True)
 async def ticket_stats(ctx):
